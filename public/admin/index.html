@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="/admin/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <section class="card">
+      <h1>Admin Login</h1>
+      <form id="loginForm">
+        <label>Username
+          <input type="text" name="username" value="admin" required />
+        </label>
+        <label>Password
+          <input type="password" name="password" value="admin" required />
+        </label>
+        <button type="submit">Login</button>
+      </form>
+      <p id="message" class="message"></p>
+    </section>
+  </main>
+  <script src="/admin/app.js"></script>
+</body>
+</html>

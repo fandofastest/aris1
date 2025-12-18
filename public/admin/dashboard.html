@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="/admin/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Music Player Admin</div>
+    <nav>
+      <a href="#overview" class="outline" style="margin-right:8px;">Overview</a>
+      <a href="#protected" class="outline" style="margin-right:8px;">Protected</a>
+      <a href="#import" class="outline" style="margin-right:8px;">Import</a>
+      <a href="#add" class="outline" style="margin-right:8px;">Tambah</a>
+      <a href="#songs" class="outline" style="margin-right:8px;">Songs</a>
+      <a href="#categories" class="outline" style="margin-right:8px;">Categories</a>
+      <a href="#playlists" class="outline" style="margin-right:8px;">Playlists</a>
+      <a href="#api" class="outline" style="margin-right:12px;">API</a>
+      <button id="logoutBtn" class="outline">Logout</button>
+    </nav>
+  </header>
+  <main class="container">
+    <section id="overview" class="card tab-pane active">
+      <h1>Dashboard</h1>
+      <p>Halo, <span id="username">admin</span>.</p>
+      <p>Token akan divalidasi otomatis saat halaman dibuka.</p>
+      <div id="status" class="message"></div>
+    </section>
+    <section id="categories" class="card tab-pane">
+      <h2>Categories</h2>
+      <form id="categoryForm" style="margin-bottom:12px;">
+        <label>Nama Kategori
+          <input type="text" name="name" placeholder="Mis. Pop" required />
+        </label>
+        <button type="submit">Tambah</button>
+      </form>
+      <div class="table-wrapper" style="overflow:auto;">
+        <table id="categoriesTable" border="0" cellpadding="8" cellspacing="0" style="width:100%;">
+          <thead>
+            <tr>
+              <th>Nama</th>
+              <th>Dibuat</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="categoriesMsg" class="message"></div>
+    </section>
+    <section id="playlists" class="card tab-pane">
+      <h2>Playlists</h2>
+      <form id="playlistForm" style="margin-bottom:12px;">
+        <label>Nama Playlist
+          <input type="text" name="name" placeholder="Mis. Favorites" required />
+        </label>
+        <label>Deskripsi (opsional)
+          <input type="text" name="description" placeholder="Keterangan" />
+        </label>
+        <button type="submit">Buat</button>
+      </form>
+      <div class="table-wrapper" style="overflow:auto;">
+        <table id="playlistsTable" border="0" cellpadding="8" cellspacing="0" style="width:100%;">
+          <thead>
+            <tr>
+              <th>Nama</th>
+              <th>Deskripsi</th>
+              <th>Items</th>
+              <th>Dibuat</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="playlistsMsg" class="message"></div>
+    </section>
+    <section id="protected" class="card tab-pane">
+      <h2>Contoh Endpoint Terproteksi</h2>
+      <button id="testProtected">Test /api/protected</button>
+      <pre id="protectedResult" class="code"></pre>
+    </section>
+    <section id="import" class="card tab-pane">
+      <h2>Songs - Import dari YouTube</h2>
+      <form id="importForm">
+        <label> YouTube URL
+          <input type="url" name="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..." required />
+        </label>
+        <button type="submit">Import</button>
+      </form>
+      <div id="importMsg" class="message"></div>
+    </section>
+    <section id="add" class="card tab-pane">
+      <h2>Songs - Tambah Manual</h2>
+      <form id="addSongForm">
+        <label> URL Audio
+          <input type="url" name="url" placeholder="https://example.com/track.mp3" required />
+        </label>
+        <label> Judul
+          <input type="text" name="title" placeholder="Judul lagu" required />
+        </label>
+        <label> Kategori
+          <select name="categoryId" id="add_category">
+            <option value="">(Tidak ada)</option>
+          </select>
+        </label>
+        <label> Durasi (detik, opsional)
+          <input type="number" name="durationSeconds" min="0" />
+        </label>
+        <button type="submit">Tambah</button>
+      </form>
+      <div id="addMsg" class="message"></div>
+    </section>
+    <section id="songs" class="card tab-pane">
+      <h2>Daftar Songs</h2>
+      <button id="reloadSongs" class="outline">Muat Ulang</button>
+      <div class="table-wrapper" style="overflow:auto; margin-top:12px;">
+        <table id="songsTable" border="0" cellpadding="8" cellspacing="0" style="width:100%;">
+          <thead>
+            <tr>
+              <th>Judul</th>
+              <th>Thumbnail</th>
+              <th>URL</th>
+              <th>Kategori</th>
+              <th>Sumber</th>
+              <th>Dibuat</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="songsMsg" class="message"></div>
+    </section>
+    <section id="api" class="card tab-pane">
+      <h2>API Usage</h2>
+      <p>Base URL: <code>http://localhost:3000</code></p>
+      <h3>Auth</h3>
+      <pre class="code">POST /api/auth/login
+Body: {"username":"admin","password":"admin"}
+Response: {"token":"...","token_type":"Bearer","expires_in":"1h"}
+
+GET /api/auth/me (requires Authorization: Bearer &lt;TOKEN&gt;)</pre>
+
+      <h3>Songs</h3>
+      <pre class="code">GET /api/songs
+GET /api/songs/:id
+POST /api/songs (protected)
+  Body: { url, title, durationSeconds?, thumbnail?, source?, categoryId? }
+PATCH /api/songs/:id (protected)
+  Body: { url?, title?, durationSeconds?, thumbnail?, source?, categoryId? }
+DELETE /api/songs/:id (protected)
+POST /api/songs/import (protected)
+  Body: { youtubeUrl }</pre>
+
+      <h3>Categories</h3>
+      <pre class="code">GET /api/categories
+GET /api/categories/:id
+POST /api/categories (protected) Body: { name }
+PATCH /api/categories/:id (protected) Body: { name? }
+DELETE /api/categories/:id (protected)</pre>
+
+      <h3>Playlists</h3>
+      <pre class="code">GET /api/playlists
+GET /api/playlists/:id
+  Response example: { id, name, description, items: [songId, ...], createdAt }
+POST /api/playlists (protected)
+  Body: { name, description? }
+PATCH /api/playlists/:id (protected)
+  Body: { name?, description? }
+DELETE /api/playlists/:id (protected)
+POST /api/playlists/:id/items (protected)
+  Body: { songId }
+DELETE /api/playlists/:id/items/:songId (protected)</pre>
+
+      <h3>Contoh curl (Windows PowerShell)</h3>
+      <pre class="code"># Login
+curl -X POST http://localhost:3000/api/auth/login ^
+  -H "Content-Type: application/json" ^
+  -d "{\"username\":\"admin\",\"password\":\"admin\"}"
+
+# List songs (public)
+curl http://localhost:3000/api/songs
+
+# Tambah kategori (protected)
+curl -X POST http://localhost:3000/api/categories ^
+  -H "Authorization: Bearer &lt;TOKEN&gt;" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"name\":\"Pop\"}"
+
+# Buat playlist (protected)
+curl -X POST http://localhost:3000/api/playlists ^
+  -H "Authorization: Bearer &lt;TOKEN&gt;" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"name\":\"My List\",\"description\":\"Favorites\"}"
+
+# Tambahkan lagu ke playlist (protected)
+curl -X POST http://localhost:3000/api/playlists/&lt;PLAYLIST_ID&gt;/items ^
+  -H "Authorization: Bearer &lt;TOKEN&gt;" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"songId\":\"&lt;SONG_ID&gt;\"}"
+
+# Lihat detail playlist (berisi array items = daftar songId)
+curl http://localhost:3000/api/playlists/&lt;PLAYLIST_ID&gt;
+
+# Hapus lagu dari playlist (protected)
+curl -X DELETE http://localhost:3000/api/playlists/&lt;PLAYLIST_ID&gt;/items/&lt;SONG_ID&gt; ^
+  -H "Authorization: Bearer &lt;TOKEN&gt;"
+
+# Set kategori pada lagu (protected)
+curl -X PATCH http://localhost:3000/api/songs/&lt;SONG_ID&gt; ^
+  -H "Authorization: Bearer &lt;TOKEN&gt;" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"categoryId\":\"&lt;CATEGORY_ID&gt;\"}"</pre>
+    </section>
+  </main>
+  <!-- Edit Song Modal -->
+  <div id="editModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close="modal"></div>
+    <div class="modal-dialog" role="document">
+      <header class="modal-header">
+        <h3>Edit Song</h3>
+        <button type="button" id="editCloseBtn" class="outline">✕</button>
+      </header>
+      <form id="editForm" class="modal-body">
+        <input type="hidden" name="id" id="edit_id" />
+        <label>Judul
+          <input type="text" name="title" id="edit_title" required />
+        </label>
+        <label>URL
+          <input type="url" name="url" id="edit_url" required />
+        </label>
+        <label>Kategori
+          <select id="edit_category">
+            <option value="">(Tidak ada)</option>
+          </select>
+        </label>
+        <label>Durasi (detik)
+          <input type="number" name="durationSeconds" id="edit_duration" min="0" />
+        </label>
+        <label>Thumbnail URL
+          <input type="url" name="thumbnail" id="edit_thumbnail" />
+        </label>
+        <label>Sumber
+          <input type="text" name="source" id="edit_source" placeholder="youtube/manual/other" />
+        </label>
+        <footer class="modal-actions">
+          <button type="button" id="editCancelBtn" class="outline">Batal</button>
+          <button type="submit">Simpan</button>
+        </footer>
+        <div id="editMsg" class="message"></div>
+      </form>
+    </div>
+  </div>
+  <!-- Edit Category Modal -->
+  <div id="editCategoryModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close="modal"></div>
+    <div class="modal-dialog" role="document">
+      <header class="modal-header">
+        <h3>Edit Category</h3>
+        <button type="button" id="catCloseBtn" class="outline">✕</button>
+      </header>
+      <form id="editCategoryForm" class="modal-body">
+        <input type="hidden" id="cat_id" />
+        <label>Nama
+          <input type="text" id="cat_name" required />
+        </label>
+        <footer class="modal-actions">
+          <button type="button" id="catCancelBtn" class="outline">Batal</button>
+          <button type="submit">Simpan</button>
+        </footer>
+        <div id="catMsg" class="message"></div>
+      </form>
+    </div>
+  </div>
+  <!-- Edit Playlist Modal -->
+  <div id="editPlaylistModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close="modal"></div>
+    <div class="modal-dialog" role="document">
+      <header class="modal-header">
+        <h3>Edit Playlist</h3>
+        <button type="button" id="plCloseBtn" class="outline">✕</button>
+      </header>
+      <form id="editPlaylistForm" class="modal-body">
+        <input type="hidden" id="pl_id" />
+        <label>Nama
+          <input type="text" id="pl_name" required />
+        </label>
+        <label>Deskripsi
+          <input type="text" id="pl_description" />
+        </label>
+        <footer class="modal-actions">
+          <button type="button" id="plCancelBtn" class="outline">Batal</button>
+          <button type="submit">Simpan</button>
+        </footer>
+        <div id="plMsg" class="message"></div>
+      </form>
+    </div>
+  </div>
+  <!-- Add Song To Playlist Modal -->
+  <div id="addToPlaylistModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close="modal"></div>
+    <div class="modal-dialog" role="document">
+      <header class="modal-header">
+        <h3>Tambah Lagu ke Playlist</h3>
+        <button type="button" id="addToPlCloseBtn" class="outline">✕</button>
+      </header>
+      <form id="addToPlaylistForm" class="modal-body">
+        <input type="hidden" id="add_playlist_id" />
+        <label>Pilih Lagu
+          <select id="add_song_select"></select>
+        </label>
+        <footer class="modal-actions">
+          <button type="button" id="addToPlCancelBtn" class="outline">Batal</button>
+          <button type="submit">Tambah</button>
+        </footer>
+        <div id="addToPlMsg" class="message"></div>
+      </form>
+    </div>
+  </div>
+  <!-- Playlist Items Modal -->
+  <div id="playlistItemsModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close="modal"></div>
+    <div class="modal-dialog" role="document">
+      <header class="modal-header">
+        <h3>Playlist Items</h3>
+        <button type="button" id="plItemsCloseBtn" class="outline">✕</button>
+      </header>
+      <div class="modal-body">
+        <input type="hidden" id="plItems_playlist_id" />
+        <div id="plItemsMsg" class="message"></div>
+        <div class="table-wrapper" style="overflow:auto;">
+          <table id="plItemsTable" border="0" cellpadding="8" cellspacing="0" style="width:100%;">
+            <thead>
+              <tr>
+                <th>Judul</th>
+                <th>Kategori</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/admin/app.js"></script>
+</body>
+</html>
