@@ -137,6 +137,14 @@
     <section id="api" class="card tab-pane">
       <h2>API Usage</h2>
       <p>Base URL: <code>http://localhost:3000</code></p>
+      <h3>Health</h3>
+      <pre class="code">GET /api/health
+Response: { "status": "ok", "env": "development" }</pre>
+
+      <h3>Protected (contoh)</h3>
+      <pre class="code">GET /api/protected (requires Authorization: Bearer <TOKEN>)
+Response: { "message": "protected content", "user": { ... } }</pre>
+
       <h3>Auth</h3>
       <pre class="code">POST /api/auth/login
 Body: {"username":"admin","password":"admin"}
@@ -146,6 +154,7 @@ GET /api/auth/me (requires Authorization: Bearer &lt;TOKEN&gt;)</pre>
 
       <h3>Songs</h3>
       <pre class="code">GET /api/songs
+GET /api/songs/search?q=keyword
 GET /api/songs/:id
 POST /api/songs (protected)
   Body: { url, title, durationSeconds?, thumbnail?, source?, categoryId? }

@@ -10,6 +10,19 @@ router.get('/', (req, res) => {
   res.json({ items: getAllSongs() });
 });
 
+// Public: search by query string in title or url
+router.get('/search', (req, res) => {
+  const q = (req.query.q || '').toString().trim();
+  if(!q) return res.status(400).json({ error: 'q is required' });
+  const needle = q.toLowerCase();
+  const items = getAllSongs().filter(s => {
+    const title = (s.title || '').toLowerCase();
+    const url = (s.url || '').toLowerCase();
+    return title.includes(needle) || url.includes(needle);
+  });
+  res.json({ items });
+});
+
 router.get('/:id', (req, res) => {
   const song = getSongById(req.params.id);
   if (!song) return res.status(404).json({ error: 'Song not found' });

@@ -224,9 +224,25 @@
 
   async function populateSongsSelect(){
     if(!addToPlFields.songSelect) return;
-    const data = await apiFetch(API.songs);
-    const items = data.items || [];
-    addToPlFields.songSelect.innerHTML = items.map(s => `<option value="${s.id}">${(s.title||'Untitled')}</option>`).join('');
+    const playlistId = addToPlFields.playlistId && addToPlFields.playlistId.value;
+    // Load all songs and current playlist detail to filter out existing items
+    const [songsData, plDetail] = await Promise.all([
+      apiFetch(API.songs),
+      playlistId ? apiFetch(`${API.playlists}/${playlistId}`) : Promise.resolve({ items: [] })
+    ]);
+    const allSongs = (songsData.items || []);
+    const existingIds = new Set((plDetail && plDetail.items) || []);
+    const available = allSongs.filter(s => !existingIds.has(s.id));
+    // Populate select
+    if(available.length === 0){
+      addToPlFields.songSelect.innerHTML = '<option value="">(Tidak ada lagu yang tersedia)</option>';
+      const submitBtn = addToPlForm ? addToPlForm.querySelector('button[type="submit"]') : null;
+      if(submitBtn) submitBtn.disabled = true;
+    } else {
+      addToPlFields.songSelect.innerHTML = available.map(s => `<option value="${s.id}">${(s.title||'Untitled')}</option>`).join('');
+      const submitBtn = addToPlForm ? addToPlForm.querySelector('button[type="submit"]') : null;
+      if(submitBtn) submitBtn.disabled = false;
+    }
   }
 
   function openAddToPlaylistModal(pl){ if(!addToPlModal) return; addToPlFields.playlistId.value = pl.id; setMessage(addToPlMsg,''); addToPlModal.classList.remove('hidden'); addToPlModal.setAttribute('aria-hidden','false'); populateSongsSelect(); }
@@ -326,7 +342,18 @@
     editFields.duration.value = song.durationSeconds != null ? String(song.durationSeconds) : '';
     editFields.thumbnail.value = song.thumbnail || '';
     editFields.source.value = song.source || '';
-    populateCategorySelect(song.categoryId || '');
+    // Ensure categories are loaded so selected value can be applied
+    if(!Array.isArray(categoriesCache) || categoriesCache.length === 0){
+      // populate quickly with empty list, then refresh once categories loaded
+      populateCategorySelect(song.categoryId || '');
+      loadCategories().then(() => {
+        populateCategorySelect(song.categoryId || '');
+      }).catch(() => {
+        /* ignore */
+      });
+    } else {
+      populateCategorySelect(song.categoryId || '');
+    }
     setMessage(editMsg, '');
     editModal.classList.remove('hidden');
     editModal.setAttribute('aria-hidden', 'false');
