@@ -223,6 +223,19 @@ curl -X PATCH http://localhost:3000/api/songs/&lt;SONG_ID&gt; ^
   -H "Authorization: Bearer &lt;TOKEN&gt;" ^
   -H "Content-Type: application/json" ^
   -d "{\"categoryId\":\"&lt;CATEGORY_ID&gt;\"}"</pre>
+
+      <h3>Database (Export/Import)</h3>
+      <pre class="code">GET /api/db/export (protected)
+POST /api/db/import (protected)
+  Body: { songs: [], categories: [], playlists: [] }</pre>
+
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:8px;">
+        <button id="exportDbBtn" class="outline">Export DB</button>
+        <input type="file" id="importDbFile" accept="application/json" />
+        <button id="importDbBtn">Import DB</button>
+      </div>
+      <div id="dbMsg" class="message"></div>
+
     </section>
   </main>
   <!-- Edit Song Modal -->
