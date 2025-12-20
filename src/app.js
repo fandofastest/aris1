@@ -11,6 +11,7 @@ import authRouter from './routes/auth.js';
 import songsRouter from './routes/songs.js';
 import categoriesRouter from './routes/categories.js';
 import playlistsRouter from './routes/playlists.js';
+import dbRouter from './routes/db.js';
 
 const app = express();
 
@@ -49,6 +50,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/songs', songsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/playlists', playlistsRouter);
+app.use('/api/db', dbRouter);
 
 app.get('/api/protected', authMiddleware, (req, res) => {
   res.json({ message: 'protected content', user: req.user });
