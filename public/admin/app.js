@@ -467,6 +467,46 @@
     });
   }
 
+  // DB Export/Import (API tab)
+  const exportDbBtn = document.getElementById('exportDbBtn');
+  const importDbBtn = document.getElementById('importDbBtn');
+  const importDbFile = document.getElementById('importDbFile');
+  const dbMsg = document.getElementById('dbMsg');
+
+  async function handleExportDb(){
+    if(!exportDbBtn) return;
+    setMessage(dbMsg, 'Menyiapkan export...');
+    try{
+      const res = await fetch('/api/db/export', {
+        headers: storage.token ? { 'Authorization': `Bearer ${storage.token}` } : {}
+      });
+      if(!res.ok) throw new Error((await res.text()) || res.statusText);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'db-export.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      setMessage(dbMsg, 'Export siap diunduh.');
+    }catch(err){ setMessage(dbMsg, 'Gagal export: ' + err.message, true); }
+  }
+
+  async function handleImportDb(){
+    if(!importDbBtn) return;
+    const file = importDbFile && importDbFile.files && importDbFile.files[0];
+    if(!file){ setMessage(dbMsg, 'Pilih file JSON terlebih dulu.', true); return; }
+    try{
+      setMessage(dbMsg, 'Mengimpor...');
+      const text = await file.text();
+      const json = JSON.parse(text);
+      const result = await apiFetch('/api/db/import', { method: 'POST', body: JSON.stringify(json) });
+      setMessage(dbMsg, `Import selesai. songs=${result.counts?.songs||0}, categories=${result.counts?.categories||0}, playlists=${result.counts?.playlists||0}`);
+    }catch(err){ setMessage(dbMsg, 'Gagal import: ' + err.message, true); }
+  }
+
+  if(exportDbBtn) exportDbBtn.addEventListener('click', handleExportDb);
+  if(importDbBtn) importDbBtn.addEventListener('click', handleImportDb);
+
   // Songs Management
   const songsTable = document.getElementById('songsTable');
   const songsMsg = document.getElementById('songsMsg');
