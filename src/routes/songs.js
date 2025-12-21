@@ -72,7 +72,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const ok = await removeSong(req.params.id);
     if (!ok) return res.status(404).json({ error: 'Song not found' });
-    res.status(204).send();
+    res.status(200).json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
