@@ -1,38 +1,43 @@
 import { v4 as uuidv4 } from 'uuid';
-import { readDB, writeDB } from '../filedb.js';
+import { getDb } from '../lib/mongo.js';
 
-export function getAllSongs() {
-  const db = readDB();
-  return [...db.songs].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+export async function getAllSongs() {
+  const db = await getDb();
+  const items = await db
+    .collection('songs')
+    .find({})
+    .sort({ createdAt: -1 })
+    .toArray();
+  return items;
 }
 
-export function getSongById(id) {
-  const db = readDB();
-  return db.songs.find(s => s.id === id) || null;
+export async function getSongById(id) {
+  const db = await getDb();
+  const song = await db.collection('songs').findOne({ id });
+  return song || null;
 }
 
-export function addSong({ url, title, durationSeconds = null, thumbnail = null, source = 'youtube', categoryId = null }) {
-  const db = readDB();
+export async function addSong({ url, title, durationSeconds = null, thumbnail = null, source = 'youtube', categoryId = null }) {
+  const db = await getDb();
   const now = new Date().toISOString();
   const song = { id: uuidv4(), url, title, durationSeconds, thumbnail, source, categoryId, createdAt: now, updatedAt: now };
-  db.songs.push(song);
-  writeDB(db);
+  await db.collection('songs').insertOne(song);
   return song;
 }
 
-export function updateSong(id, patch) {
-  const db = readDB();
-  const idx = db.songs.findIndex(s => s.id === id);
-  if (idx === -1) return null;
-  db.songs[idx] = { ...db.songs[idx], ...patch, updatedAt: new Date().toISOString() };
-  writeDB(db);
-  return db.songs[idx];
+export async function updateSong(id, patch) {
+  const db = await getDb();
+  const update = { ...patch, updatedAt: new Date().toISOString() };
+  const res = await db.collection('songs').findOneAndUpdate(
+    { id },
+    { $set: update },
+    { returnDocument: 'after' }
+  );
+  return res.value || null;
 }
 
-export function removeSong(id) {
-  const db = readDB();
-  const before = db.songs.length;
-  db.songs = db.songs.filter(s => s.id !== id);
-  writeDB(db);
-  return db.songs.length < before;
+export async function removeSong(id) {
+  const db = await getDb();
+  const res = await db.collection('songs').deleteOne({ id });
+  return res.deletedCount > 0;
 }
